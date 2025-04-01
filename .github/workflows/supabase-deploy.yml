@@ -23,9 +23,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16'
-          cache: 'yarn'
+          cache: false
       
-      - name: Criar package.json para o CI
+      - name: Criar package.json e yarn.lock para o CI
         run: |
           echo '{
             "name": "supabase-dkseventos",
@@ -35,12 +35,13 @@ jobs:
               "@supabase/supabase-js": "^2.39.0"
             }
           }' > package.json
+          touch yarn.lock
           
       - name: Instalar Yarn
         run: npm install -g yarn
           
       - name: Instalar dependências
-        run: yarn install
+        run: yarn install --no-lockfile
         
       - name: Instalar Supabase CLI
         run: yarn global add @supabase/cli
