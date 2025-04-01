@@ -13,6 +13,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
     steps:
       - name: Checkout código
         uses: actions/checkout@v3
@@ -21,8 +23,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16'
+          cache: 'yarn'
       
-      - name: Criar package.json e package-lock.json para o CI
+      - name: Criar package.json para o CI
         run: |
           echo '{
             "name": "supabase-dkseventos",
@@ -32,28 +35,30 @@ jobs:
               "@supabase/supabase-js": "^2.39.0"
             }
           }' > package.json
-          echo '{}' > package-lock.json
+          
+      - name: Instalar Yarn
+        run: npm install -g yarn
           
       - name: Instalar dependências
-        run: npm install --no-package-lock --force
+        run: yarn install
         
       - name: Instalar Supabase CLI
-        run: npm install -g @supabase/cli
+        run: yarn global add @supabase/cli
         
       - name: Login no Supabase
-        run: npx supabase login --token ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: yarn supabase login --token ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         
       - name: Vincular ao projeto Supabase
-        run: npx supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: yarn supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
         
       - name: Deploy das migrações do banco de dados
-        run: npx supabase db push
+        run: yarn supabase db push
         
       - name: Deploy das Edge Functions
-        run: npx supabase functions deploy
+        run: yarn supabase functions deploy
         
       - name: Verificar status
-        run: npx supabase status
+        run: yarn supabase status
         
       - name: Notificar conclusão
         run: echo "✅ Deploy concluído com sucesso!" 
