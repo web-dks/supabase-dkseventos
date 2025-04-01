@@ -36,7 +36,7 @@ jobs:
           ls -la supabase || echo "Diretório supabase não existe"
         
       - name: Login no Supabase
-        run: supabase login
+        run: echo "${{ secrets.SUPABASE_ACCESS_TOKEN }}" | supabase login --token
       
       - name: Criar arquivo de projeto Supabase
         run: |
