@@ -1,72 +1,60 @@
 create extension if not exists "http" with schema "extensions";
 
+-- Verifica se a tabela profiles existe antes de tentar remover triggers, políticas e constraints
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'profiles') THEN
+    -- Drop trigger
+    EXECUTE 'DROP TRIGGER IF EXISTS "set_updated_at" ON "public"."profiles"';
+    
+    -- Drop policies
+    EXECUTE 'DROP POLICY IF EXISTS "Perfis são publicamente visíveis" ON "public"."profiles"';
+    EXECUTE 'DROP POLICY IF EXISTS "Usuários podem atualizar seus próprios perfis" ON "public"."profiles"';
+    EXECUTE 'DROP POLICY IF EXISTS "Usuários podem inserir seus próprios perfis" ON "public"."profiles"';
+    
+    -- Revoke permissions
+    EXECUTE 'REVOKE DELETE ON TABLE "public"."profiles" FROM "anon"';
+    EXECUTE 'REVOKE INSERT ON TABLE "public"."profiles" FROM "anon"';
+    EXECUTE 'REVOKE REFERENCES ON TABLE "public"."profiles" FROM "anon"';
+    EXECUTE 'REVOKE SELECT ON TABLE "public"."profiles" FROM "anon"';
+    EXECUTE 'REVOKE TRIGGER ON TABLE "public"."profiles" FROM "anon"';
+    EXECUTE 'REVOKE TRUNCATE ON TABLE "public"."profiles" FROM "anon"';
+    EXECUTE 'REVOKE UPDATE ON TABLE "public"."profiles" FROM "anon"';
+    
+    EXECUTE 'REVOKE DELETE ON TABLE "public"."profiles" FROM "authenticated"';
+    EXECUTE 'REVOKE INSERT ON TABLE "public"."profiles" FROM "authenticated"';
+    EXECUTE 'REVOKE REFERENCES ON TABLE "public"."profiles" FROM "authenticated"';
+    EXECUTE 'REVOKE SELECT ON TABLE "public"."profiles" FROM "authenticated"';
+    EXECUTE 'REVOKE TRIGGER ON TABLE "public"."profiles" FROM "authenticated"';
+    EXECUTE 'REVOKE TRUNCATE ON TABLE "public"."profiles" FROM "authenticated"';
+    EXECUTE 'REVOKE UPDATE ON TABLE "public"."profiles" FROM "authenticated"';
+    
+    EXECUTE 'REVOKE DELETE ON TABLE "public"."profiles" FROM "service_role"';
+    EXECUTE 'REVOKE INSERT ON TABLE "public"."profiles" FROM "service_role"';
+    EXECUTE 'REVOKE REFERENCES ON TABLE "public"."profiles" FROM "service_role"';
+    EXECUTE 'REVOKE SELECT ON TABLE "public"."profiles" FROM "service_role"';
+    EXECUTE 'REVOKE TRIGGER ON TABLE "public"."profiles" FROM "service_role"';
+    EXECUTE 'REVOKE TRUNCATE ON TABLE "public"."profiles" FROM "service_role"';
+    EXECUTE 'REVOKE UPDATE ON TABLE "public"."profiles" FROM "service_role"';
+    
+    -- Drop constraints 
+    EXECUTE 'ALTER TABLE "public"."profiles" DROP CONSTRAINT IF EXISTS "profiles_id_fkey"';
+    EXECUTE 'ALTER TABLE "public"."profiles" DROP CONSTRAINT IF EXISTS "profiles_username_key"';
+    EXECUTE 'ALTER TABLE "public"."profiles" DROP CONSTRAINT IF EXISTS "username_length"';
+    EXECUTE 'ALTER TABLE "public"."profiles" DROP CONSTRAINT IF EXISTS "profiles_pkey"';
+    
+    -- Drop indexes
+    EXECUTE 'DROP INDEX IF EXISTS "public"."profiles_pkey"';
+    EXECUTE 'DROP INDEX IF EXISTS "public"."profiles_username_key"';
+    
+    -- Drop table
+    EXECUTE 'DROP TABLE "public"."profiles"';
+  END IF;
+END;
+$$;
 
-drop trigger if exists "set_updated_at" on "public"."profiles";
-
-drop policy "Perfis são publicamente visíveis" on "public"."profiles";
-
-drop policy "Usuários podem atualizar seus próprios perfis" on "public"."profiles";
-
-drop policy "Usuários podem inserir seus próprios perfis" on "public"."profiles";
-
-revoke delete on table "public"."profiles" from "anon";
-
-revoke insert on table "public"."profiles" from "anon";
-
-revoke references on table "public"."profiles" from "anon";
-
-revoke select on table "public"."profiles" from "anon";
-
-revoke trigger on table "public"."profiles" from "anon";
-
-revoke truncate on table "public"."profiles" from "anon";
-
-revoke update on table "public"."profiles" from "anon";
-
-revoke delete on table "public"."profiles" from "authenticated";
-
-revoke insert on table "public"."profiles" from "authenticated";
-
-revoke references on table "public"."profiles" from "authenticated";
-
-revoke select on table "public"."profiles" from "authenticated";
-
-revoke trigger on table "public"."profiles" from "authenticated";
-
-revoke truncate on table "public"."profiles" from "authenticated";
-
-revoke update on table "public"."profiles" from "authenticated";
-
-revoke delete on table "public"."profiles" from "service_role";
-
-revoke insert on table "public"."profiles" from "service_role";
-
-revoke references on table "public"."profiles" from "service_role";
-
-revoke select on table "public"."profiles" from "service_role";
-
-revoke trigger on table "public"."profiles" from "service_role";
-
-revoke truncate on table "public"."profiles" from "service_role";
-
-revoke update on table "public"."profiles" from "service_role";
-
-alter table "public"."profiles" drop constraint "profiles_id_fkey";
-
-alter table "public"."profiles" drop constraint "profiles_username_key";
-
-alter table "public"."profiles" drop constraint "username_length";
-
-drop function if exists "public"."create_profile_on_signup"();
-
-drop function if exists "public"."handle_updated_at"();
-
-alter table "public"."profiles" drop constraint "profiles_pkey";
-
-drop index if exists "public"."profiles_pkey";
-
-drop index if exists "public"."profiles_username_key";
-
-drop table "public"."profiles";
+-- Funções podem ser removidas independentemente da existência da tabela
+DROP FUNCTION IF EXISTS "public"."create_profile_on_signup"();
+DROP FUNCTION IF EXISTS "public"."handle_updated_at"();
 
 
