@@ -57,7 +57,7 @@ jobs:
       - name: Aplicar migrações do banco de dados
         run: |
           # Tenta aplicar as migrações com include-all para ignorar avisos de migração
-          echo "$SUPABASE_DB_PASSWORD" | supabase db push --db-url $SUPABASE_DB_URL --include-all --password-stdin
+          supabase db push --db-url $SUPABASE_DB_URL --include-all -p "$SUPABASE_DB_PASSWORD"
         
       - name: Deploy das Edge Functions
         run: supabase functions deploy --project-ref $SUPABASE_PROJECT_ID
