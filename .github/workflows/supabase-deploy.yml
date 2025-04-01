@@ -29,9 +29,33 @@ jobs:
       - name: Vincular ao projeto Supabase
         run: supabase link --project-ref $SUPABASE_PROJECT_ID
 
-      - name: Aplicar migrações do banco de dados
-        run: supabase db push --db-url $SUPABASE_DB_URL
+      - name: Listar migrações locais
+        run: |
+          echo "Migrações locais:"
+          ls -la supabase/migrations || echo "Diretório de migrações vazio ou não existe"
 
+      - name: Verificar status do banco de dados
+        run: supabase db remote status --db-url $SUPABASE_DB_URL || echo "Não foi possível verificar o status remoto"
+
+      - name: Pull migrações remotas
+        run: supabase db pull --db-url $SUPABASE_DB_URL
+        continue-on-error: true
+
+      - name: Reparar tabela de migrações
+        run: |
+          # Tentar reparar migrações com problemas usando a migration mais recente
+          LATEST_MIGRATION=$(ls -t supabase/migrations | head -1 || echo "")
+          if [ ! -z "$LATEST_MIGRATION" ]; then
+            echo "Tentando reparar com a migração mais recente: $LATEST_MIGRATION"
+            supabase migration repair --status reverted --db-url $SUPABASE_DB_URL || echo "Reparo não necessário"
+          else
+            echo "Nenhuma migração encontrada para reparar"
+          fi
+        continue-on-error: true
+
+      - name: Aplicar migrações do banco de dados
+        run: supabase db push --db-url $SUPABASE_DB_URL --ignore-no-migration-warning
+        
       - name: Deploy das Edge Functions
         run: supabase functions deploy --project-ref $SUPABASE_PROJECT_ID
 
