@@ -36,13 +36,13 @@ jobs:
           ls -la supabase || echo "Diretório supabase não existe"
         
       - name: Login no Supabase
-        run: supabase login --token "${{ secrets.SUPABASE_ACCESS_TOKEN }}"
+        run: supabase login --token ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       
       - name: Criar arquivo de projeto Supabase
         run: |
           mkdir -p .supabase
           echo '{
-            "project_id": "${{ secrets.SUPABASE_PROJECT_ID }}",
+            "project_id": ${{ secrets.SUPABASE_PROJECT_ID }},
             "current_kps_path": "api_keys.json"
           }' > .supabase/config.json
           
