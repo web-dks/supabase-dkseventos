@@ -13,8 +13,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
     steps:
       - name: Checkout código
         uses: actions/checkout@v3
@@ -22,28 +20,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
       
-      - name: Criar package.json e yarn.lock para o CI
+      - name: Download Supabase CLI
         run: |
-          echo '{
-            "name": "supabase-dkseventos",
-            "version": "1.0.0",
-            "private": true,
-            "dependencies": {
-              "@supabase/supabase-js": "^2.39.0"
-            }
-          }' > package.json
-          touch yarn.lock
-          
-      - name: Instalar Yarn
-        run: npm install -g yarn
-          
-      - name: Instalar dependências
-        run: yarn install --no-lockfile
-        
-      - name: Instalar Supabase CLI
-        run: npm install -g supabase
+          curl -fsSL https://github.com/supabase/cli/releases/download/v1.142.2/supabase_1.142.2_linux_amd64.deb -o supabase.deb
+          sudo dpkg -i supabase.deb
+          supabase --version
         
       - name: Login no Supabase
         run: supabase login --token ${{ secrets.SUPABASE_ACCESS_TOKEN }}
