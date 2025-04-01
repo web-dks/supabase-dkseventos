@@ -13,6 +13,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
     steps:
       - name: Checkout código
         uses: actions/checkout@v3
@@ -27,9 +29,30 @@ jobs:
           curl -fsSL https://github.com/supabase/cli/releases/download/v1.142.2/supabase_1.142.2_linux_amd64.deb -o supabase.deb
           sudo dpkg -i supabase.deb
           supabase --version
+          
+      - name: Verificar diretório do projeto
+        run: |
+          ls -la
+          ls -la supabase || echo "Diretório supabase não existe"
         
       - name: Login no Supabase
-        run: supabase login --token="${{ secrets.SUPABASE_ACCESS_TOKEN }}"
+        run: supabase login
+      
+      - name: Criar arquivo de projeto Supabase
+        run: |
+          mkdir -p .supabase
+          echo '{
+            "project_id": "${{ secrets.SUPABASE_PROJECT_ID }}",
+            "current_kps_path": "api_keys.json"
+          }' > .supabase/config.json
+          
+          echo '{
+            "anon_key": "${{ secrets.SUPABASE_ANON_KEY }}",
+            "api_key": "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}",
+            "endpoint": "${{ secrets.SUPABASE_URL }}"
+          }' > .supabase/api_keys.json
+          
+          ls -la .supabase
         
       - name: Vincular ao projeto Supabase
         run: supabase link --project-ref="${{ secrets.SUPABASE_PROJECT_ID }}"
