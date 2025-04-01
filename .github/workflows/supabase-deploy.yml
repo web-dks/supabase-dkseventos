@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: '16'
       
-      - name: Criar package.json para o CI
+      - name: Criar package.json e package-lock.json para o CI
         run: |
           echo '{
             "name": "supabase-dkseventos",
@@ -32,9 +32,10 @@ jobs:
               "@supabase/supabase-js": "^2.39.0"
             }
           }' > package.json
+          echo '{}' > package-lock.json
           
       - name: Instalar dependências
-        run: npm install
+        run: npm install --no-package-lock --force
         
       - name: Instalar Supabase CLI
         run: npm install -g @supabase/cli
