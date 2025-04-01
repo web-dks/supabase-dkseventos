@@ -29,10 +29,10 @@ jobs:
           supabase --version
         
       - name: Login no Supabase
-        run: supabase login --token ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase login --token="${{ secrets.SUPABASE_ACCESS_TOKEN }}"
         
       - name: Vincular ao projeto Supabase
-        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: supabase link --project-ref="${{ secrets.SUPABASE_PROJECT_ID }}"
         
       - name: Deploy das migrações do banco de dados
         run: supabase db push
