@@ -21,10 +21,20 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16'
-          cache: 'npm'
       
+      - name: Criar package.json para o CI
+        run: |
+          echo '{
+            "name": "supabase-dkseventos",
+            "version": "1.0.0",
+            "private": true,
+            "dependencies": {
+              "@supabase/supabase-js": "^2.39.0"
+            }
+          }' > package.json
+          
       - name: Instalar dependências
-        run: npm ci || npm install
+        run: npm install
         
       - name: Instalar Supabase CLI
         run: npm install -g @supabase/cli
