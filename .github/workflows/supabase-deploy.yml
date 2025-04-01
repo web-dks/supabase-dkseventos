@@ -1,0 +1,48 @@
+name: Deploy Supabase
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/functions/**'
+      - 'supabase/config.toml'
+  # Permite executar manualmente através da interface do GitHub
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+      
+      - name: Instalar dependências
+        run: npm ci || npm install
+        
+      - name: Instalar Supabase CLI
+        run: npm install -g @supabase/cli
+        
+      - name: Login no Supabase
+        run: npx supabase login --token ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        
+      - name: Vincular ao projeto Supabase
+        run: npx supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+        
+      - name: Deploy das migrações do banco de dados
+        run: npx supabase db push
+        
+      - name: Deploy das Edge Functions
+        run: npx supabase functions deploy
+        
+      - name: Verificar status
+        run: npx supabase status
+        
+      - name: Notificar conclusão
+        run: echo "✅ Deploy concluído com sucesso!" 
