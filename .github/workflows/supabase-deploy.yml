@@ -2,12 +2,11 @@ name: Deploy Supabase
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'supabase/migrations/**'
       - 'supabase/functions/**'
       - 'supabase/config.toml'
-  # Permite executar manualmente através da interface do GitHub
   workflow_dispatch:
 
 jobs:
@@ -15,56 +14,27 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v3
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Supabase CLI
+        uses: supabase/setup-cli@v1
         with:
-          node-version: '18'
-      
-      - name: Download Supabase CLI
-        run: |
-          curl -fsSL https://github.com/supabase/cli/releases/download/v1.142.2/supabase_1.142.2_linux_amd64.deb -o supabase.deb
-          sudo dpkg -i supabase.deb
-          supabase --version
-          
-      - name: Verificar diretório do projeto
-        run: |
-          ls -la
-          ls -la supabase || echo "Diretório supabase não existe"
-        
-      - name: Login no Supabase
-        run: supabase login --token ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      
-      - name: Criar arquivo de projeto Supabase
-        run: |
-          mkdir -p .supabase
-          echo '{
-            "project_id": ${{ secrets.SUPABASE_PROJECT_ID }},
-            "current_kps_path": "api_keys.json"
-          }' > .supabase/config.json
-          
-          echo '{
-            "anon_key": "${{ secrets.SUPABASE_ANON_KEY }}",
-            "api_key": "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}",
-            "endpoint": "${{ secrets.SUPABASE_URL }}"
-          }' > .supabase/api_keys.json
-          
-          ls -la .supabase
-        
+          version: latest
+
       - name: Vincular ao projeto Supabase
-        run: supabase link --project-ref="${{ secrets.SUPABASE_PROJECT_ID }}"
-        
-      - name: Deploy das migrações do banco de dados
+        run: supabase link --project-ref $SUPABASE_PROJECT_ID
+
+      - name: Aplicar migrações do banco de dados
         run: supabase db push
-        
+
       - name: Deploy das Edge Functions
-        run: supabase functions deploy
-        
+        run: supabase functions deploy --project-ref $SUPABASE_PROJECT_ID
+
       - name: Verificar status
         run: supabase status
-        
+
       - name: Notificar conclusão
-        run: echo "✅ Deploy concluído com sucesso!" 
+        run: echo "✅ Deploy concluído com sucesso!"
