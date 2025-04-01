@@ -15,7 +15,8 @@ jobs:
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
@@ -29,9 +30,7 @@ jobs:
         run: supabase link --project-ref $SUPABASE_PROJECT_ID
 
       - name: Aplicar migrações do banco de dados
-        run: |
-          # Usar a senha do banco de dados diretamente
-          echo "$SUPABASE_DB_PASSWORD" | supabase db push --password-stdin
+        run: supabase db push --db-url $SUPABASE_DB_URL
 
       - name: Deploy das Edge Functions
         run: supabase functions deploy --project-ref $SUPABASE_PROJECT_ID
